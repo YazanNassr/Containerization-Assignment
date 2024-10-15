@@ -1,0 +1,62 @@
+services:
+
+  streaming:
+    image: yazannassr/streaming:latest
+    container_name: strm
+    depends_on:
+      - authentication
+      - filesystem
+      - database
+    ports:
+      - "8080:8080"
+    networks:
+      - front-tier
+      - back-tier
+    restart: on-failure
+
+  management:
+    image: yazannassr/management:latest
+    container_name: mng
+    depends_on:
+      - authentication
+      - filesystem
+      - database
+    ports:
+      - "8081:8080"
+    networks:
+      - front-tier
+      - back-tier
+    restart: on-failure
+
+  authentication:
+    image: yazannassr/authentication:latest
+    container_name: auth
+    networks:
+      - back-tier
+    restart: on-failure
+
+  filesystem:
+    image: delfer/alpine-ftp-server
+    container_name: fs
+    environment:
+      - USERS=webapp|1234|/home/videos|1001
+    volumes:
+      - ./videos:/home/videos
+    networks:
+      - back-tier
+    restart: on-failure
+
+  database:
+    image: yazannassr/database:latest
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: '123'
+    volumes:
+      - ./sql:/var/lib/mysql
+    networks:
+      - back-tier
+    restart: on-failure
+
+networks:
+  front-tier:
+  back-tier:
